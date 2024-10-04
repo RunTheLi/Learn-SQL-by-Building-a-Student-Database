@@ -87,4 +87,8 @@ Inserted into students, Mehdi Vandenberghe
 Inserted into students, Dejon Howell
 Inserted into students, Aliya Gulgowski
 Inserted into students, Ana Tupajic
+<<<<<<< HEAD
 Inserted into students, Hugo Duran
+=======
+Inserted into students, Hugo Duran
+>>>>>>> dcc7d1657f7a635ca10a0087016d880a134342cc
