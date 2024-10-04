@@ -5,7 +5,7 @@
 PSQL="psql -X --username=freecodecamp --dbname=students --no-align --tuples-only -c"
 echo $($PSQL "TRUNCATE students, majors, courses, majors_courses")
 
-cat courses_test.csv | while IFS="," read MAJOR COURSE
+cat courses.csv | while IFS="," read MAJOR COURSE
 do
   if [[ $MAJOR != "major" ]]
   then
@@ -35,66 +35,49 @@ do
       # insert course
       INSERT_COURSE_RESULT=$($PSQL "INSERT INTO courses(course) VALUES('$COURSE')")
       if [[ $INSERT_COURSE_RESULT == "INSERT 0 1" ]]
-       then
+      then
         echo Inserted into courses, $COURSE
-       fi
+      fi
 
       # get new course_id
       COURSE_ID=$($PSQL "SELECT course_id FROM courses WHERE course='$COURSE'")
     fi
 
     # insert into majors_courses
-     INSERT_MAJORS_COURSES_RESULT=$($PSQL "INSERT INTO majors_courses(major_id, course_id) VALUES($MAJOR_ID, $COURSE_ID)")
-     if [[ $INSERT_MAJORS_COURSES_RESULT == "INSERT 0 1" ]]
+    INSERT_MAJORS_COURSES_RESULT=$($PSQL "INSERT INTO majors_courses(major_id, course_id) VALUES($MAJOR_ID, $COURSE_ID)")
+    if [[ $INSERT_MAJORS_COURSES_RESULT == "INSERT 0 1" ]]
       then
         echo Inserted into majors_courses, $MAJOR : $COURSE
       fi
-   fi
-done
+    fi
+  done
 
+cat students.csv | while IFS="," read FIRST LAST MAJOR GPA
+do
+  if [[ $FIRST != "first_name" ]]
+  then
+    # get major_id
+    MAJOR_ID=$($PSQL "SELECT major_id FROM majors WHERE major='$MAJOR'") 
 
-#./insert_data.sh
-#TRUNCATE TABLE
-#Inserted into majors, Database Administration
-#Inserted into courses, Data Structures and Algorithms
-#Inserted into majors_courses, Database Administration : Data Structures and Algorithms
-#Inserted into majors, Web Development
-#Inserted into courses, Web Programming
-#Inserted into majors_courses, Web Development : Web Programming
-#Inserted into courses, Database Systems
-#Inserted into majors_courses, Database Administration : Database Systems
-#Inserted into majors, Data Science
-#Inserted into majors_courses, Data Science : Data Structures and Algorithms
+    # if not found
+    if [[ -z $MAJOR_ID ]]
+    then
+      # set to null
+      MAJOR_ID=null
+    fi
 
+    # insert student
+    INSERT_STUDENT_RESULT=$($PSQL "INSERT INTO students(first_name, last_name, major_id, gpa) VALUES('$FIRST', '$LAST', $MAJOR_ID, $GPA)")
 
-#"Truncate" generally means to shorten something by cutting off a part of it. In different contexts, it can refer to:
-#Mathematics: Reducing a number to a specified number of decimal places without rounding. For example, truncating 3.14159 to two decimal places would give you 3.14.
-#Data Management: Removing records or data from a database table, often done to clear all entries quickly without deleting the table itself.
-#General Usage: Cutting off or shortening text, phrases, or even physical objects.
+    if [[ $INSERT_STUDENT_RESULT == "INSERT 0 1" ]]
+     then
+    echo Inserted into students, $FIRST $LAST
 
-#students=> SELECT * FROM majors;
-                   
-#+----------+-------------------------+
-#| major_id |          major          |
-#+----------+-------------------------+
-#|       21 | Database Administration |
-#|       22 | Web Development         |
-#|       23 | Data Science            |
-#+----------+-------------------------+
+    fi
 
-#+-----------+--------------------------------+
-#| course_id |             course             |
-#+-----------+--------------------------------+
-#|         8 | Data Structures and Algorithms |
-#|         9 | Web Programming                |
-#|        10 | Database Systems               |
-#+-----------+--------------------------------+
+  fi
+ done
 
-#+----------+-----------+
-#| major_id | course_id |
-#+----------+-----------+
-#|       21 |         8 |
-#|       22 |         9 |
-#|       21 |        10 |
-#|       23 |         8 |
-#+----------+-----------+
+ #Last step 
+ #Enter pg_dump --clean --create --inserts --username=freecodecamp students > students.sql in the terminal to dump the database into a students.sql file.
+ #It will save all the commands needed to rebuild it.
